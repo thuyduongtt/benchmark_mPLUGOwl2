@@ -34,7 +34,7 @@ module load conda
 # cd ~/
  
 # Perform experiments
-source activate llama_adapter
+source activate owl
 ./run.sh $LSB_JOBINDEX
 
 
