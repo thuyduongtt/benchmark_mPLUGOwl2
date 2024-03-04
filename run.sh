@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LIMIT=40
+LIMIT=40000
 
 case $1 in
   1)
@@ -9,19 +9,19 @@ case $1 in
     ;;
   2)
     DS_NAME="unbalanced"
-    START=40
+    START=40000
     ;;
   3)
     DS_NAME="unbalanced"
-    START=80
+    START=80000
     ;;
   4)
     DS_NAME="unbalanced"
-    START=120
+    START=120000
     ;;
   5)
     DS_NAME="unbalanced"
-    START=160
+    START=160000
     ;;
 esac
 
