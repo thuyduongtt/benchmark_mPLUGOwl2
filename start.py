@@ -1,13 +1,15 @@
 import argparse
+import os
+import sys
 
 import torch
 from PIL import Image
-from transformers import TextStreamer
-
 from mplug_owl2.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN
-from mplug_owl2.conversation import conv_templates, SeparatorStyle
+from mplug_owl2.conversation import conv_templates
+from mplug_owl2.mm_utils import process_images, tokenizer_image_token, get_model_name_from_path, \
+    KeywordsStoppingCriteria
 from mplug_owl2.model.builder import load_pretrained_model
-from mplug_owl2.mm_utils import process_images, tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
+from transformers import TextStreamer
 
 from pipeline import run_pipeline_by_question
 
@@ -20,7 +22,8 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 def load_model():
     global mplugowl_model
     model_name = get_model_name_from_path(MODEL_PATH)
-    mplugowl_model = load_pretrained_model(MODEL_PATH, None, model_name, load_8bit=False, load_4bit=False, device=device)
+    mplugowl_model = load_pretrained_model(MODEL_PATH, None, model_name, load_8bit=False, load_4bit=False,
+                                           device=device)
 
 
 def vqa_task(image, row_data):
@@ -29,44 +32,47 @@ def vqa_task(image, row_data):
     if mplugowl_model is None:
         load_model()
 
-    tokenizer, model, image_processor, context_len = mplugowl_model
+    with HiddenPrints():  # disable logging for faster inference
+        tokenizer, model, image_processor, context_len = mplugowl_model
 
-    conv = conv_templates["mplug_owl2"].copy()
-    roles = conv.roles
+        conv = conv_templates["mplug_owl2"].copy()
+        roles = conv.roles
 
-    img = Image.open(image).convert('RGB')
-    max_edge = max(img.size)  # We recommand you to resize to squared image for BEST performance.
-    img = img.resize((max_edge, max_edge))
+        img = Image.open(image).convert('RGB')
+        max_edge = max(img.size)  # We recommand you to resize to squared image for BEST performance.
+        img = img.resize((max_edge, max_edge))
 
-    image_tensor = process_images([img], image_processor)
-    image_tensor = image_tensor.to(model.device, dtype=torch.float16)
+        image_tensor = process_images([img], image_processor)
+        image_tensor = image_tensor.to(model.device, dtype=torch.float16)
 
-    inp = DEFAULT_IMAGE_TOKEN + row_data['question']
-    conv.append_message(conv.roles[0], inp)
-    conv.append_message(conv.roles[1], None)
-    prompt = conv.get_prompt()
+        inp = DEFAULT_IMAGE_TOKEN + row_data['question']
+        conv.append_message(conv.roles[0], inp)
+        conv.append_message(conv.roles[1], None)
+        prompt = conv.get_prompt()
 
-    input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).to(model.device)
-    stop_str = conv.sep2
-    keywords = [stop_str]
-    stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
-    streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
+        input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).to(
+            model.device)
+        stop_str = conv.sep2
+        keywords = [stop_str]
+        stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
+        streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
 
-    temperature = 0.7
-    max_new_tokens = 512
+        temperature = 0.7
+        max_new_tokens = 512
 
-    with torch.inference_mode():
-        output_ids = model.generate(
-            input_ids,
-            images=image_tensor,
-            do_sample=True,
-            temperature=temperature,
-            max_new_tokens=max_new_tokens,
-            streamer=streamer,
-            use_cache=True,
-            stopping_criteria=[stopping_criteria])
+        with torch.inference_mode():
+            output_ids = model.generate(
+                input_ids,
+                images=image_tensor,
+                do_sample=True,
+                temperature=temperature,
+                max_new_tokens=max_new_tokens,
+                streamer=streamer,
+                use_cache=True,
+                stopping_criteria=[stopping_criteria])
 
-    outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:]).strip()
+        outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:]).strip()
+
     return outputs
 
 
@@ -81,6 +87,16 @@ def test_model():
     }
     r = vqa_task(img, row_data)
     print(f'{img}, {row_data["question"]}, {r}')
+
+
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
 
 def main():
