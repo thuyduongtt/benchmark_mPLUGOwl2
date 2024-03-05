@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import random
 
 import torch
 from PIL import Image
@@ -17,6 +18,7 @@ mplugowl_model = None
 MODEL_PATH = 'MAGAer13/mplug-owl2-llama2-7b'
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print(device)
 
 
 def load_model():
@@ -26,7 +28,7 @@ def load_model():
                                            device=device)
 
 
-def vqa_task(image, row_data):
+def vqa_task(image, row_data, multichoice=False):
     # return f'prediction, {image}, {row_data["question"]}'  # turn off model for pipeline testing
 
     if mplugowl_model is None:
@@ -45,7 +47,19 @@ def vqa_task(image, row_data):
         image_tensor = process_images([img], image_processor)
         image_tensor = image_tensor.to(model.device, dtype=torch.float16)
 
-        inp = DEFAULT_IMAGE_TOKEN + row_data['question']
+        if not multichoice:
+            question = row_data['question']
+        else:
+            question = row_data['question'] + '\n'
+            shuffled_choices, shuffled_choice_scores = shuffle(row_data['choices'], row_data['choice_scores'])
+            for ii in range(len(shuffled_choices)):
+                question += f'{chr(ii + 65)}. {shuffled_choices[ii]}\n'
+
+            question += "Answer with the option's letter from the given choices directly."
+
+        print(question)
+
+        inp = DEFAULT_IMAGE_TOKEN + question
         conv.append_message(conv.roles[0], inp)
         conv.append_message(conv.roles[1], None)
         prompt = conv.get_prompt()
@@ -83,9 +97,11 @@ def test_model():
     img = 'img/eiffel.jpg'
     assert Path(img).exists(), f'No image in {img}'
     row_data = {
-        'question': 'How high is this tower?'
+        'question': 'In which country is this tower located?',
+        'choices': ['France', 'Germany', 'Vietnam', 'China'],
+        'choice_scores': [1, 0, 0, 0]
     }
-    r = vqa_task(img, row_data)
+    r = vqa_task(img, row_data, True)
     print(f'{img}, {row_data["question"]}, {r}')
 
 
@@ -99,6 +115,21 @@ class HiddenPrints:
         sys.stdout = self._original_stdout
 
 
+def shuffle(choices, choice_scores):
+    n = len(choices)
+    for i in range(n):
+        j = random.randint(0, n - 1)
+        if i != j:
+            tmp1 = choices[i]
+            tmp2 = choice_scores[i]
+            choices[i] = choices[j]
+            choice_scores[i] = choice_scores[j]
+            choices[j] = tmp1
+            choice_scores[j] = tmp2
+
+    return choices, choice_scores
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path_to_ds', type=str, required=True, help='Path to dataset')
@@ -108,10 +139,10 @@ def main():
     parser.add_argument('--limit', type=int, default=0, help='Max number of samples')
     args = parser.parse_args()
 
-    # test_model()
+    test_model()
 
-    run_pipeline_by_question(vqa_task, args.path_to_ds, args.output_dir_name, limit=args.limit,
-                             start_at=args.start_at, split=args.split)
+    # run_pipeline_by_question(vqa_task, args.path_to_ds, args.output_dir_name, limit=args.limit,
+    #                          start_at=args.start_at, split=args.split)
 
 
 if __name__ == '__main__':
