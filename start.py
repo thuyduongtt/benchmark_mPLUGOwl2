@@ -45,13 +45,20 @@ def vqa_task(image, row_data, multichoice=False):
     image_tensor = process_images([img], image_processor)
     image_tensor = image_tensor.to(model.device, dtype=torch.float16)
 
+    list_of_choices = []
+
     if not multichoice:
         question = row_data['question']
     else:
         question = row_data['question'] + '\n'
         shuffled_choices, shuffled_choice_scores = shuffle(row_data['choices'], row_data['choice_scores'])
         for ii in range(len(shuffled_choices)):
-            question += f'{chr(ii + 65)}. {shuffled_choices[ii]}\n'
+            list_of_choices.append({
+                'symbol': chr(ii + 65),
+                'choice': shuffled_choices[ii]
+            })
+        for ii in range(len(list_of_choices)):
+            question += f"{list_of_choices[ii]['symbol']}. {list_of_choices[ii]['choice']}\n"
 
         question += "Answer with the option's letter from the given choices directly."
 
@@ -86,7 +93,13 @@ def vqa_task(image, row_data, multichoice=False):
 
         outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:]).strip()
 
-    return outputs
+    if not multichoice:
+        return outputs
+    else:
+        for ii in range(len(list_of_choices)):
+            if outputs == list_of_choices[ii]['symbol']:
+                return list_of_choices[ii]['choice']
+    return 'Unknown'
 
 
 def test_model():
@@ -130,19 +143,19 @@ def shuffle(choices, choice_scores):
 
 
 def main():
-    test_model()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path_to_ds', type=str, required=True, help='Path to dataset')
+    parser.add_argument('--output_dir_name', type=str, default='output', help='Path to output')
+    parser.add_argument('--split', type=str, default='train', help='Set to "train" or "test"')
+    parser.add_argument('--start_at', type=int, default=0, help='Index of the sample to start from')
+    parser.add_argument('--limit', type=int, default=0, help='Max number of samples')
+    parser.add_argument('--multichoice', action='store_true')
+    args = parser.parse_args()
 
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('--path_to_ds', type=str, required=True, help='Path to dataset')
-    # parser.add_argument('--output_dir_name', type=str, default='output', help='Path to output')
-    # parser.add_argument('--split', type=str, default='train', help='Set to "train" or "test"')
-    # parser.add_argument('--start_at', type=int, default=0, help='Index of the sample to start from')
-    # parser.add_argument('--limit', type=int, default=0, help='Max number of samples')
-    # args = parser.parse_args()
-
-    # run_pipeline_by_question(vqa_task, args.path_to_ds, args.output_dir_name, limit=args.limit,
-    #                          start_at=args.start_at, split=args.split)
+    run_pipeline_by_question(vqa_task, args.path_to_ds, args.output_dir_name, limit=args.limit,
+                             start_at=args.start_at, split=args.split, multichoice=args.multichoice)
 
 
 if __name__ == '__main__':
-    main()
+    test_model()
+    # main()
