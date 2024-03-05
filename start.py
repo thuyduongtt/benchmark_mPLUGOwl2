@@ -18,7 +18,6 @@ mplugowl_model = None
 MODEL_PATH = 'MAGAer13/mplug-owl2-llama2-7b'
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-print(device)
 
 
 def load_model():
@@ -34,31 +33,31 @@ def vqa_task(image, row_data, multichoice=False):
     if mplugowl_model is None:
         load_model()
 
+    tokenizer, model, image_processor, context_len = mplugowl_model
+
+    conv = conv_templates["mplug_owl2"].copy()
+    roles = conv.roles
+
+    img = Image.open(image).convert('RGB')
+    max_edge = max(img.size)  # We recommand you to resize to squared image for BEST performance.
+    img = img.resize((max_edge, max_edge))
+
+    image_tensor = process_images([img], image_processor)
+    image_tensor = image_tensor.to(model.device, dtype=torch.float16)
+
+    if not multichoice:
+        question = row_data['question']
+    else:
+        question = row_data['question'] + '\n'
+        shuffled_choices, shuffled_choice_scores = shuffle(row_data['choices'], row_data['choice_scores'])
+        for ii in range(len(shuffled_choices)):
+            question += f'{chr(ii + 65)}. {shuffled_choices[ii]}\n'
+
+        question += "Answer with the option's letter from the given choices directly."
+
+    print(question)
+
     with HiddenPrints():  # disable logging for faster inference
-        tokenizer, model, image_processor, context_len = mplugowl_model
-
-        conv = conv_templates["mplug_owl2"].copy()
-        roles = conv.roles
-
-        img = Image.open(image).convert('RGB')
-        max_edge = max(img.size)  # We recommand you to resize to squared image for BEST performance.
-        img = img.resize((max_edge, max_edge))
-
-        image_tensor = process_images([img], image_processor)
-        image_tensor = image_tensor.to(model.device, dtype=torch.float16)
-
-        if not multichoice:
-            question = row_data['question']
-        else:
-            question = row_data['question'] + '\n'
-            shuffled_choices, shuffled_choice_scores = shuffle(row_data['choices'], row_data['choice_scores'])
-            for ii in range(len(shuffled_choices)):
-                question += f'{chr(ii + 65)}. {shuffled_choices[ii]}\n'
-
-            question += "Answer with the option's letter from the given choices directly."
-
-        print(question)
-
         inp = DEFAULT_IMAGE_TOKEN + question
         conv.append_message(conv.roles[0], inp)
         conv.append_message(conv.roles[1], None)
