@@ -91,7 +91,7 @@ def vqa_task(image, row_data, multichoice=False):
                 use_cache=True,
                 stopping_criteria=[stopping_criteria])
 
-        outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:]).strip()
+        outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:]).strip().replace('</s>', '')
 
     if not multichoice:
         return outputs
@@ -105,7 +105,7 @@ def vqa_task(image, row_data, multichoice=False):
 def test_model():
     from pathlib import Path
 
-    print('===== TEST PIPELINE =====')
+    print('===== TEST MODEL =====')
     img = 'img/eiffel.jpg'
     assert Path(img).exists(), f'No image in {img}'
     row_data = {
