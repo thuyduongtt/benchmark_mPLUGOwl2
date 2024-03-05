@@ -152,6 +152,8 @@ def main():
     parser.add_argument('--multichoice', action='store_true')
     args = parser.parse_args()
 
+    print(args)
+
     run_pipeline_by_question(vqa_task, args.path_to_ds, args.output_dir_name, limit=args.limit,
                              start_at=args.start_at, split=args.split, multichoice=args.multichoice)
 
