@@ -62,7 +62,7 @@ def vqa_task(image, row_data, multichoice=False):
 
         question += "Answer with the option's letter from the given choices directly."
 
-    print(question)
+    # print(question)
 
     with HiddenPrints():  # disable logging for faster inference
         inp = DEFAULT_IMAGE_TOKEN + question
