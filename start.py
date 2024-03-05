@@ -93,13 +93,10 @@ def vqa_task(image, row_data, multichoice=False):
 
         outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:]).strip().replace('</s>', '')
 
-    if not multichoice:
-        return outputs
-    else:
-        for ii in range(len(list_of_choices)):
-            if outputs == list_of_choices[ii]['symbol']:
-                return list_of_choices[ii]['choice']
-    return f'Unknown ({outputs})'
+    if multichoice:
+        return f'{outputs} | {[c["symbol"] + ". " + c["choice"] for c in list_of_choices]}'
+
+    return outputs
 
 
 def test_model():
