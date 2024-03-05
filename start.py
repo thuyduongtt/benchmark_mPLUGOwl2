@@ -99,7 +99,7 @@ def vqa_task(image, row_data, multichoice=False):
         for ii in range(len(list_of_choices)):
             if outputs == list_of_choices[ii]['symbol']:
                 return list_of_choices[ii]['choice']
-    return 'Unknown'
+    return f'Unknown ({outputs})'
 
 
 def test_model():
@@ -157,5 +157,5 @@ def main():
 
 
 if __name__ == '__main__':
-    test_model()
-    # main()
+    # test_model()
+    main()
