@@ -169,7 +169,7 @@ def stream_data_vqa(ds_dir, limit=0, start_at=0, okvqa=False):
                 'answers': answers,
                 'choices': choices,
                 'choice_scores': choice_scores,
-                'image_path': f"{record['image_id']}.jpg"
+                'image_path': f"COCO_val2014_{str(record['image_id']).zfill(12)}.jpg"  # COCO_val2014_000000297147.jpg
             }
 
 
@@ -247,4 +247,5 @@ if __name__ == '__main__':
         if count <= 5:
             print(r)
     print('Total:', count)
+
 
