@@ -126,7 +126,8 @@ class HiddenPrints:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--ds_name', type=str, default='ReasonVQA', help='Valid input: ReasonVQA, VQAv2, OKVQA, GQA')
-    parser.add_argument('--path_to_ds', type=str, required=True, help='Path to dataset')
+    parser.add_argument('--ds_dir', type=str, required=True, help='Path to dataset')
+    parser.add_argument('--img_dir', type=str, default='', help='Path to images')
     parser.add_argument('--output_dir_name', type=str, default='output', help='Path to output')
     parser.add_argument('--split', type=str, default='train', help='Set to "train" or "test"')
     parser.add_argument('--start_at', type=int, default=0, help='Index of the sample to start from')
@@ -134,9 +135,12 @@ def main():
     parser.add_argument('--multichoice', action='store_true')
     args = parser.parse_args()
 
+    if not args.img_dir:
+        args.img_dir = args.ds_dir
+
     print(args)
 
-    run_pipeline_by_question(vqa_task, args.ds_name, args.path_to_ds, args.path_to_ds, args.output_dir_name, limit=args.limit,
+    run_pipeline_by_question(vqa_task, args.ds_name, args.ds_dir, args.img_dir, args.output_dir_name, limit=args.limit,
                              start_at=args.start_at, split=args.split, multichoice=args.multichoice)
 
 

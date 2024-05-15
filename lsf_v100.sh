@@ -35,7 +35,8 @@ module load conda
  
 # Perform experiments
 source activate owl
-./run.sh $LSB_JOBINDEX
+#./scripts/run_ReasonVQA.sh $LSB_JOBINDEX
+./scripts/run_OKVQA.sh
 
 
 # No longer exit on any error.
