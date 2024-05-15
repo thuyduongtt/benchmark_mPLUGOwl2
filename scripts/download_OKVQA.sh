@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd ../../dataset
+
 # OKVQA
 mkdir OKVQA
 cd OKVQA
@@ -10,4 +12,3 @@ wget https://okvqa.allenai.org/static/data/OpenEnded_mscoco_val2014_questions.js
 unzip -q OpenEnded_mscoco_val2014_questions.json.zip
 rm OpenEnded_mscoco_val2014_questions.json.zip
 
-cd ..

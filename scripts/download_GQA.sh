@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd ../../dataset
+
 # GQA
 mkdir GQA
 cv GQA
@@ -10,4 +12,3 @@ wget https://downloads.cs.stanford.edu/nlp/data/gqa/images.zip
 unzip -q images.zip
 rm images.zip
 
-cd ..
