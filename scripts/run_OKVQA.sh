@@ -19,5 +19,5 @@ else
    --ds_name $DS_NAME \
    --ds_dir $DS_DIR \
    --img_dir $IMG_DIR \
-   --output_dir_name output_${DS_NAME} \
+   --output_dir_name output_${DS_NAME}
 fi
