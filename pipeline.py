@@ -23,7 +23,7 @@ def run_pipeline_by_question(task, ds_name, ds_dir, img_dir, output_dir_name, li
         if ds_name in CSV_HEADER:
             csvwriter.writerow(CSV_HEADER[ds_name])
         else:
-            csvwriter.writerow(['id', 'image', 'question', 'answer', 'prediction', 'split'])
+            csvwriter.writerow(['id', 'image', 'question', 'answer', 'prediction'])
         return csvfile, csvwriter
 
     csv_file, csv_writer = init_csv_file()
@@ -53,8 +53,12 @@ def run_pipeline_by_question(task, ds_name, ds_dir, img_dir, output_dir_name, li
         # prediction = 'prediction'  # turn off model for pipeline testing
 
         answers = d['answers']
-        csv_writer.writerow([d['image_id'], img_path, d['question'], answers,
-                             prediction, d['n_hop'], d['has_scene_graph'], split])
+
+        if ds_name == 'ReasonVQA':
+            csv_writer.writerow([d['image_id'], img_path, d['question'], answers,
+                                 prediction, d['n_hop'], d['has_scene_graph'], split])
+        else:
+            csv_writer.writerow([d['image_id'], img_path, d['question'], answers, prediction])
 
     csv_file.close()
 
@@ -247,5 +251,3 @@ if __name__ == '__main__':
         if count <= 5:
             print(r)
     print('Total:', count)
-
-
