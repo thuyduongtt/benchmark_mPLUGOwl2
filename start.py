@@ -27,7 +27,7 @@ def load_model():
                                            device=device)
 
 
-def vqa_task(image, row_data, multichoice=False):
+def vqa_task(image, row_data, choices=None):
     # return f'prediction, {image}, {row_data["question"]}'  # turn off model for pipeline testing
 
     if mplugowl_model is None:
@@ -47,15 +47,14 @@ def vqa_task(image, row_data, multichoice=False):
 
     list_of_choices = []
 
-    if not multichoice:
+    if choices is None:
         question = row_data['question']
     else:
         question = row_data['question'] + '\n'
-        shuffled_choices, shuffled_choice_scores = shuffle(row_data['choices'], row_data['choice_scores'])
-        for ii in range(len(shuffled_choices)):
+        for ii in range(len(choices)):
             list_of_choices.append({
                 'symbol': chr(ii + 65),
-                'choice': shuffled_choices[ii]
+                'choice': choices[ii]
             })
         for ii in range(len(list_of_choices)):
             question += f"{list_of_choices[ii]['symbol']}. {list_of_choices[ii]['choice']}\n"
@@ -93,7 +92,7 @@ def vqa_task(image, row_data, multichoice=False):
 
         outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:]).strip().replace('</s>', '')
 
-    if multichoice:
+    if choices is not None:
         return f'{outputs} | {[c["symbol"] + ". " + c["choice"] for c in list_of_choices]}'
 
     return outputs
@@ -124,23 +123,9 @@ class HiddenPrints:
         sys.stdout = self._original_stdout
 
 
-def shuffle(choices, choice_scores):
-    n = len(choices)
-    for i in range(n):
-        j = random.randint(0, n - 1)
-        if i != j:
-            tmp1 = choices[i]
-            tmp2 = choice_scores[i]
-            choices[i] = choices[j]
-            choice_scores[i] = choice_scores[j]
-            choices[j] = tmp1
-            choice_scores[j] = tmp2
-
-    return choices, choice_scores
-
-
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--ds_name', type=str, default='ReasonVQA', help='Valid input: ReasonVQA, VQAv2, OKVQA, GQA')
     parser.add_argument('--path_to_ds', type=str, required=True, help='Path to dataset')
     parser.add_argument('--output_dir_name', type=str, default='output', help='Path to output')
     parser.add_argument('--split', type=str, default='train', help='Set to "train" or "test"')
@@ -151,7 +136,7 @@ def main():
 
     print(args)
 
-    run_pipeline_by_question(vqa_task, args.path_to_ds, args.output_dir_name, limit=args.limit,
+    run_pipeline_by_question(vqa_task, args.ds_name, args.path_to_ds, args.path_to_ds, args.output_dir_name, limit=args.limit,
                              start_at=args.start_at, split=args.split, multichoice=args.multichoice)
 
 

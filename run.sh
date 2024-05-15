@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LIMIT=20000
-DS_NAME="unbalanced"
+DS_NAME="OKVQA"
 MULTICHOICE=true
 
 case $1 in
@@ -32,19 +32,20 @@ DS_DIR="../dataset/${DS_NAME}"
 
 if [ "$MULTICHOICE" = true ] ; then
   python start.py \
+   --ds_name $DS_NAME \
    --path_to_ds $DS_DIR \
    --output_dir_name output_mc_${DS_NAME}_${START} \
    --start_at $START \
    --limit $LIMIT \
    --multichoice
 
-  python start.py \
-   --path_to_ds $DS_DIR \
-   --output_dir_name output_mc_${DS_NAME}_test_${START} \
-   --split test \
-   --start_at $START \
-   --limit $LIMIT \
-   --multichoice
+#  python start.py \
+#   --path_to_ds $DS_DIR \
+#   --output_dir_name output_mc_${DS_NAME}_test_${START} \
+#   --split test \
+#   --start_at $START \
+#   --limit $LIMIT \
+#   --multichoice
 
 else
   python start.py \
@@ -53,10 +54,10 @@ else
    --start_at $START \
    --limit $LIMIT
 
-  python start.py \
-   --path_to_ds $DS_DIR \
-   --output_dir_name output_${DS_NAME}_test_${START} \
-   --split test \
-   --start_at $START \
-   --limit $LIMIT
+#  python start.py \
+#   --path_to_ds $DS_DIR \
+#   --output_dir_name output_${DS_NAME}_test_${START} \
+#   --split test \
+#   --start_at $START \
+#   --limit $LIMIT
 fi
