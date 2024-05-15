@@ -16,14 +16,10 @@ cd OKVQA
 # Install gdown
 pip install --upgrade --no-cache-dir gdown
 
-ZIP_ID='1Rro5L20br0acFFp-ZY-QVxN9zm0-CkgI'
-ZIP_NAME='mscoco_val2014_annotations.json'
-gdown $ZIP_ID -O $ZIP_NAME
-unzip -q $ZIP_NAME
-rm $ZIP_NAME
+FILE_ID='1Rro5L20br0acFFp-ZY-QVxN9zm0-CkgI'
+FILE_NAME='mscoco_val2014_annotations.json'
+gdown $FILE_ID -O $FILE_NAME
 
-ZIP_ID='1m9LyAV-uHkGroHaFvIsbaaVWdKXN0zHs'
-ZIP_NAME='OpenEnded_mscoco_val2014_questions.json'
-gdown $ZIP_ID -O $ZIP_NAME
-unzip -q $ZIP_NAME
-rm $ZIP_NAME
+FILE_ID='1m9LyAV-uHkGroHaFvIsbaaVWdKXN0zHs'
+FILE_NAME='OpenEnded_mscoco_val2014_questions.json'
+gdown $FILE_ID -O $FILE_NAME
