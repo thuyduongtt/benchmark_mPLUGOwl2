@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LIMIT=30000
-DS_NAME="OKVQA"
+DS_NAME="VQAv2"
 MULTICHOICE=true
 
 DS_DIR="../dataset/${DS_NAME}"
