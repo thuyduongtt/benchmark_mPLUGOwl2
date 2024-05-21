@@ -39,7 +39,7 @@ if [ "$MULTICHOICE" = true ] ; then
    --ds_name $DS_NAME \
    --ds_dir $DS_DIR \
    --img_dir $IMG_DIR \
-   --output_dir_name output_mc_${DS_NAME} \
+   --output_dir_name output_mc_${DS_NAME}_${START} \
    --start_at $START \
    --limit $LIMIT \
    --multichoice
@@ -49,7 +49,7 @@ else
    --ds_name $DS_NAME \
    --ds_dir $DS_DIR \
    --img_dir $IMG_DIR \
-   --output_dir_name output_${DS_NAME} \
+   --output_dir_name output_${DS_NAME}_${START} \
    --start_at $START \
    --limit $LIMIT
 fi
