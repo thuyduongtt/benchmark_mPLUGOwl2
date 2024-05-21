@@ -29,7 +29,7 @@ case $1 in
   7)
     START=180000
     ;;
-  7)
+  8)
     START=210000
     ;;
 esac
