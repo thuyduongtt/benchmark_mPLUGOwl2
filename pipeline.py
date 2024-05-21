@@ -244,7 +244,7 @@ def select_choices(answers, true_answers, k=3):
 
 
 if __name__ == '__main__':
-    records = stream_data_vqa('E:\\Code\\Datasets\\OKVQA', okvqa=True)
+    records = stream_data_vqa('E:/Code/Datasets/VQAv2')
     count = 0
     for r in records:
         count += 1

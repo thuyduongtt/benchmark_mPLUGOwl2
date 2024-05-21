@@ -5,6 +5,8 @@ DS_NAME="ReasonVQA"
 DS_VERSION="unbalanced"
 MULTICHOICE=true
 
+DS_DIR="../dataset/${DS_VERSION}"
+
 case $1 in
   1)
     START=0
@@ -28,8 +30,6 @@ case $1 in
     START=120000
     ;;
 esac
-
-DS_DIR="../dataset/${DS_VERSION}"
 
 if [ "$MULTICHOICE" = true ] ; then
   python start.py \

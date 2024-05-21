@@ -4,7 +4,7 @@ cd ../../dataset
 
 # GQA
 mkdir GQA
-cv GQA
+cd GQA
 wget https://downloads.cs.stanford.edu/nlp/data/gqa/questions1.2.zip
 unzip -q questions1.2.zip
 rm questions1.2.zip
