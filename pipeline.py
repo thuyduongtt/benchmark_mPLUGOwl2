@@ -7,7 +7,7 @@ import random
 
 DATASETS = ['ReasonVQA', 'VQAv2', 'OKVQA', 'GQA']
 CSV_HEADER = {
-    'ReasonVQA': ['id', 'image', 'question', 'answer', 'prediction', 'n_hop', 'has_scene_graph', 'split']
+    'ReasonVQA': ['question_id', 'image_id', 'image', 'question', 'answer', 'prediction', 'n_hop', 'has_scene_graph', 'split']
 }
 
 
