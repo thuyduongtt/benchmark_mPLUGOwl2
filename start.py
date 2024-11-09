@@ -1,7 +1,6 @@
 import argparse
 import os
 import sys
-import random
 
 import torch
 from PIL import Image

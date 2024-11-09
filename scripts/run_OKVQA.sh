@@ -1,7 +1,14 @@
 #!/bin/bash
 
 DS_NAME="OKVQA"
-MULTICHOICE=true
+
+case $1 in
+  1)
+    MULTICHOICE=true
+    ;;
+  2)
+    MULTICHOICE=false
+    ;;
 
 DS_DIR="../dataset/${DS_NAME}"
 IMG_DIR="../dataset/COCO/val2014"

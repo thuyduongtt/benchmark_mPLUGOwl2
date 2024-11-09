@@ -17,13 +17,13 @@ def run_pipeline_by_question(task, ds_name, ds_dir, img_dir, output_dir_name, li
         if not Path(output_dir_name).exists():
             Path(output_dir_name).mkdir(parents=True)
 
-        timestamp = datetime.now().isoformat()
+        timestamp = datetime.now().isoformat().replace(':', '-')
         csvfile = open(f'{output_dir_name}/result_{timestamp}.csv', 'w', encoding='utf-8')
         csvwriter = csv.writer(csvfile)
         if ds_name in CSV_HEADER:
             csvwriter.writerow(CSV_HEADER[ds_name])
         else:
-            csvwriter.writerow(['id', 'image', 'question', 'answer', 'prediction'])
+            csvwriter.writerow(['question_id', 'image_id', 'image', 'question', 'answer', 'prediction'])
         return csvfile, csvwriter
 
     csv_file, csv_writer = init_csv_file()
@@ -55,10 +55,10 @@ def run_pipeline_by_question(task, ds_name, ds_dir, img_dir, output_dir_name, li
         answers = d['answers']
 
         if ds_name == 'ReasonVQA':
-            csv_writer.writerow([d['image_id'], img_path, d['question'], answers,
+            csv_writer.writerow([d['question_id'], d['image_id'], img_path, d['question'], answers,
                                  prediction, d['n_hop'], d['has_scene_graph'], split])
         else:
-            csv_writer.writerow([d['image_id'], img_path, d['question'], answers, prediction])
+            csv_writer.writerow([d['question_id'], d['image_id'], img_path, d['question'], answers, prediction])
 
     csv_file.close()
 
@@ -108,6 +108,7 @@ def stream_data_reasonvqa(ds_dir, ds_split, limit=0, start_at=0):
                 return
 
             yield {
+                'question_id': record['question_id'],
                 'image_id': record['image_id'],
                 'question': record['question'],
                 'answers': record['answers'],
@@ -177,44 +178,6 @@ def stream_data_vqa(ds_dir, limit=0, start_at=0, okvqa=False):
             }
 
 
-def run_pipeline_by_image(task, path_to_dataset, output_dir_name, limit=0, start_at=0, split='train'):
-    def init_csv_file():
-        if not Path(output_dir_name).exists():
-            Path(output_dir_name).mkdir(parents=True)
-
-        timestamp = datetime.now().isoformat()
-        csvfile = open(f'{output_dir_name}/result_{timestamp}.csv', 'w', encoding='utf-8')
-        csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(['id', 'image', 'prediction', 'split'])
-        return csvfile, csvwriter
-
-    csv_file, csv_writer = init_csv_file()
-
-    i = 0
-    for img_file in Path(f'{path_to_dataset}/{split}').iterdir():
-        if img_file.name.startswith('.'):
-            continue
-
-        i += 1
-
-        if i == 1 or i % 100 == 0:
-            print(f"[{i}]: {img_file.name}")
-
-        # split into smaller CSV file every 1000 records
-        if i % 1000 == 0:
-            csv_file.close()
-            csv_file, csv_writer = init_csv_file()
-
-        local_img_path = f"{split}/{img_file.name}"
-        img_path = f"{path_to_dataset}/" + local_img_path
-
-        prediction = task(img_path)
-
-        csv_writer.writerow([img_file.name, local_img_path, prediction, split])
-
-    csv_file.close()
-
-
 def shuffle(choices, choice_scores):
     n = len(choices)
     for i in range(n):
@@ -241,13 +204,3 @@ def select_choices(answers, true_answers, k=3):
         if answers[idx] not in true_answers and answers[idx] not in choices:
             choices.append(answers[idx])
     return choices
-
-
-if __name__ == '__main__':
-    records = stream_data_vqa('E:/Code/Datasets/VQAv2')
-    count = 0
-    for r in records:
-        count += 1
-        if count <= 5:
-            print(r)
-    print('Total:', count)
